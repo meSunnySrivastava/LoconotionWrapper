@@ -1,4 +1,7 @@
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Toolkit;
@@ -8,22 +11,20 @@ import java.awt.image.ColorConvertOp;
 import java.awt.image.PixelGrabber;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.logging.Logger;
-
 import javax.swing.ImageIcon;
 
 
 /**
- * Utility methods used to interact with images.
+ * Image Comparator to check two passed Image files are just copy of each other
  */
 public class ImageComparator {
 
-    private final static Logger logger = Logger.getLogger(String.valueOf(ImageComparator.class));
+    private final static Logger logger = LoggerFactory.getLogger(String.valueOf(ImageComparator.class));
 
     private static final boolean equals(final int[] data1, final int[] data2) {
         final int length = data1.length;
         if (length != data2.length) {
-            //logger.severe("File lengths are different.");
+            logger.error("File lengths are different.");
             return false;
         }
         for(int i = 0; i < length; i++) {
@@ -33,14 +34,14 @@ public class ImageComparator {
                 //transparent and the color does not matter. Return false if
                 //only 1 is 100% transparent.
                 if((((data1[i] >> 24) & 0xff) == 0) && (((data2[i] >> 24) & 0xff) == 0)) {
-                    //logger.severe("Both pixles at spot {} are different but 100% transparent.", Integer.valueOf(i));
+                    logger.error("Both pixles at spot {} are different but 100% transparent.", i);
                 } else {
-                   // logger.severe("The pixel {} is different.", Integer.valueOf(i));
+                   logger.error("The pixel {} is different.", i);
                     return false;
                 }
             }
         }
-        //logger.debug("Both groups of pixels are the same.");
+        logger.debug("Both groups of pixels are the same.");
         return true;
     }
 
@@ -108,7 +109,7 @@ public class ImageComparator {
      * @return <code>true</code> if they are equal, otherwise
      *         <code>false</code>.
      */
-    private final static boolean visuallyCompareJava(final File file1, final File file2) {
+    private static boolean visuallyCompareJava(final File file1, final File file2) {
         return equals(getPixels(getBufferedImage(file1), file1), getPixels(getBufferedImage(file2), file2));
     }
 
@@ -121,9 +122,9 @@ public class ImageComparator {
      * @param file2 Image 2 to compare
      * @return <code>true</code> if both images are visually the same.
      */
-    public final static boolean visuallyCompare(final File file1, final File file2) {
+    public static boolean visuallySameImage(final File file1, final File file2) {
 
-//        logger.debug("Start comparing \"{}\" and \"{}\".", file1.getPath(), file2.getPath());
+        logger.debug("Start comparing \"{}\" and \"{}\".", file1.getPath(), file2.getPath());
 
         if(file1 == file2) {
             return true;
@@ -132,10 +133,10 @@ public class ImageComparator {
         boolean answer = visuallyCompareJava(file1, file2);
 
         if(!answer) {
-//            logger.info("The files \"{}\" and \"{}\" are not pixel by pixel the same image. Manual comparison required.", file1.getPath(), file2.getPath());
+            logger.info("The files \"{}\" and \"{}\" are not pixel by pixel the same image. Manual comparison required.", file1.getPath(), file2.getPath());
         }
 
-//        logger.debug("Finish comparing \"{}\" and \"{}\".", file1.getPath(), file2.getPath());
+        logger.debug("Finish comparing \"{}\" and \"{}\".", file1.getPath(), file2.getPath());
 
         return answer;
     }
@@ -145,23 +146,22 @@ public class ImageComparator {
      * @return <code>true</code> if the image contains one or more pixels with
      *         some percentage of transparency (Alpha)
      */
-    public final static boolean containsAlphaTransparency(final File file) {
-//        logger.debug("Start Alpha pixel check for {}.", file.getPath());
+    public static boolean containsAlphaTransparency(final File file) {
+        logger.debug("Start Alpha pixel check for {}.", file.getPath());
 
-        boolean answer = false;
         for(final int pixel : getPixels(getBufferedImage(file), file)) {
             //If the alpha is 0 for both that means that the pixels are 100%
             //transparent and the color does not matter. Return false if
             //only 1 is 100% transparent.
             if(((pixel >> 24) & 0xff) != 255) {
-//                logger.debug("The image contains Aplha Transparency.");
+                logger.debug("The image contains Aplha Transparency.");
                 return true;
             }
         }
 
-//        logger.debug("The image does not contain Aplha Transparency.");
-//        logger.debug("End Alpha pixel check for {}.", file.getPath());
+        logger.debug("The image does not contain Aplha Transparency.");
+        logger.debug("End Alpha pixel check for {}.", file.getPath());
 
-        return answer;
+        return false;
     }
 }

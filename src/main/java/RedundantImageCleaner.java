@@ -1,130 +1,210 @@
 
+import common.ApplicationProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Cleaner to remove multiple copies of same logo files from Assets folder and just keep one
+ */
 public class RedundantImageCleaner {
+    private final static Logger logger = LoggerFactory.getLogger(RedundantImageCleaner.class);
+
+
     private final static String imageInHTMLRegex = "assets\\/images\\/(.+?)\"";
     private final static Pattern pattern = Pattern.compile(imageInHTMLRegex);
 
-    private static final String imagesFolderLocation = "/Users/sunnysrivastava/IdeaProjects/loconotion/dist/welcome-to-my-piece-of-internet/assets/images";
-    private static final String htmlFolderLocation = "/Users/sunnysrivastava/IdeaProjects/loconotion/dist/welcome-to-my-piece-of-internet";
+    private final static ClassLoader classLoader = RedundantImageCleaner.class.getClassLoader();
 
 
-    public void cleanReduntantImagesfromAssetFolder() throws IOException {
-//        System.out.println();
+    public static File poemLogo;
+    public static File poemLogoThumbnail;
+    public static File sweLogo;
+    public static File sweLogoThumbnail;
 
-        getHtmlVsImageFileName(getGeneratedFileNameVsMainFileName());
-        System.out.println("FINISHED");
+    public void cleanRedundantImagesFromAssetFolder() throws IOException {
+        logger.info("Going to clean redundant images in image-folder: {}", ApplicationProperties.imageFolder);
+        replaceImageFileNameInHtml(getGeneratedImageVsLogoTypeMappings());
+        logger.info("Finished cleaning redundant images in image-folder: {}", ApplicationProperties.imageFolder);
 
     }
 
-//    private void replaceRandomImageNamesWithActualImageName(Map<String, List<String>> htmlVsImageFileName,
-//                                                            Map<String, String> generatedFileNameVsMainFileName){
-//
-//    }
+    /**
+     * Replace references to Random Name generated logo files in HTML files with actual Logo names
+     * @param generatedImageVsLogoTypeMappings
+     * @throws IOException
+     */
+    private void replaceImageFileNameInHtml(final Map<String, String> generatedImageVsLogoTypeMappings) throws IOException {
+        logger.debug("Replacing Random Image names to actual Logo Image names in HTML files.");
 
-    private Map<String, List<String>> getHtmlVsImageFileName(Map<String, String> generatedFileNameVsMainFileName) throws IOException {
-        File htmlFolder = new File(htmlFolderLocation);
-        System.out.println("Processing html Folder Location: "+ htmlFolderLocation);
-        Map<String, List<String>> HtmlVsImageFileName = new HashMap<>();
+        File htmlFolder = new File(ApplicationProperties.htmlFolder);
+
         Matcher matcher;
         List<String> images = null;
-        for(File file : htmlFolder.listFiles()){
-            System.out.println("Processing file in html folder: "+ file.getName()+" file type:" + file.isFile());
+        String content;
+        String randomName;
+        for(File file : Objects.requireNonNull(htmlFolder.listFiles(),
+                "Cannot Find specified htmlFolder: "+ApplicationProperties.htmlFolder )){
 
-            if(!file.isDirectory() && !".DS_Store".equalsIgnoreCase(file.getName())){
-                String content = Files.readString(file.toPath());
+            if (!file.isDirectory() && (file.getName()).endsWith("html")) {
+                logger.debug("Processing HTML File: {}", file.getName());
+                content = Files.readString(file.toPath());
                 matcher = pattern.matcher(content);
-                System.out.println("Got html file: "+ file.getName());
-                //System.out.println(Files.readAllLines(file.toPath()));
-                images = new ArrayList<>();String randomName = null;
+                images = new ArrayList<>();
 
-                    while(matcher.find()){
-                         randomName = matcher.group(1);
-                        images.add(randomName);
+                while (matcher.find()) {
+                    randomName = matcher.group(1);
+                    images.add(randomName);
+                    if (null != generatedImageVsLogoTypeMappings.get(randomName)) {
+                        content = content.replace(randomName, generatedImageVsLogoTypeMappings.get(randomName));
 
-                        if(null != generatedFileNameVsMainFileName.get(randomName)){
-                            System.out.println("Replacing randomName:"+ randomName+" with: " + generatedFileNameVsMainFileName.get(randomName));
-                            content = content.replace(randomName, generatedFileNameVsMainFileName.get(randomName));
-                            Path p = new File(imagesFolderLocation+"/"+randomName).toPath();
-                            if(p.toFile().exists()){
-                                System.out.println("Deleting file: " + p.toString());
-                                Files.delete(p);
-                            }
-                        }
+                        logger.debug("Replaced random Img name: {} with Logo name: {}", randomName,
+                                generatedImageVsLogoTypeMappings.get(randomName));
 
+                        DeleteRandomImageFile(randomName);
                     }
 
+                }
 
-                    Files.write(file.toPath(), content.getBytes());
-                    System.out.println("Found "+images.size()+" images in html file: "+ file.getName() +" Complete List >"+ images);
-                    HtmlVsImageFileName.put(file.getName(), images);
+                Files.write(file.toPath(), content.getBytes());
+                logger.debug("Random Image Names replaced for HTML {} : {}",
+                        file.getName(), images);
+
+                logger.debug("Done Replacing Random Image names to actual Logo Image names in HTML file {}",
+                        file.getName());
+                content = null;
             }
         }
-        return HtmlVsImageFileName;
     }
 
-    private Map<String, String> getGeneratedFileNameVsMainFileName() throws IOException {
-        File imagesFolder = new File(imagesFolderLocation);
-        Map<String, String> generatedFileVsActualFile = new HashMap<>();
-        ClassLoader classLoader = main.class.getClassLoader();
-        File poemLogo =  new File(classLoader.getResource("poemLogo.jpeg").getFile());
-        Files.copy( poemLogo.toPath(),new File(imagesFolderLocation + "/poemLogo.jpeg").toPath(), StandardCopyOption.REPLACE_EXISTING);
+    /**
+     * Delete RandomName Logo File generated after replacing the references
+     * @param randomName
+     * @throws IOException
+     */
+    private void DeleteRandomImageFile(String randomName) throws IOException {
+        Path randomImage = new File(ApplicationProperties.imageFolder+"/"+ randomName)
+                .toPath();
 
-        File poemLogoThumbnail =  new File(classLoader.getResource("poemLogoThumbnail.jpeg").getFile());
-        Files.copy( poemLogoThumbnail.toPath(),new File(imagesFolderLocation + "/poemLogoThumbnail.jpeg").toPath(), StandardCopyOption.REPLACE_EXISTING);
-        File sweLogo =  new File(classLoader.getResource("sweLogo.jpeg").getFile());
-        Files.copy( sweLogo.toPath(),new File(imagesFolderLocation + "/sweLogo.jpeg").toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if(randomImage.toFile().exists()){
+            logger.debug("Deleting random Img: {}", randomImage.toString());
+            Files.delete(randomImage);
+        }
+    }
 
+    /**
+     * Check every image and see if its just copy of any Logo files
+     * If so maintain the corresponding logo name in a map
+     * @return map with logo name for generated images who are copy
+     * @throws IOException
+     */
+    private Map<String, String> getGeneratedImageVsLogoTypeMappings() throws IOException {
+        copyLogoImagesToAssetsFolder();
+        logger.debug("Creating Generated Vs Logo type Mappings");
+        Map<String, String> generatedVsLogoMapping = new HashMap<>();
+        File imagesFolder = new File(ApplicationProperties.imageFolder);
 
-        File sweLogoThumbnail =  new File(classLoader.getResource("sweLogoThumbnail.jpeg").getFile());
-        Files.copy( sweLogoThumbnail.toPath(),new File(imagesFolderLocation + "/sweLogoThumbnail.jpeg").toPath(), StandardCopyOption.REPLACE_EXISTING);
+        for(File file : Objects.requireNonNull(imagesFolder.listFiles(),
+                "Cannot Find specified imagesFolder: "+ApplicationProperties.imageFolder )){
 
-        for(File file : imagesFolder.listFiles()){
             if(!file.isDirectory()){
-                String actualFile = findActualFileNameForGeneratedImage(file);
-//                logger.error("actualFile:" + actualFile + " for generated Image"+ file.getName());
-                if(null != actualFile){
-                    generatedFileVsActualFile.put(file.getName(), actualFile);
+
+                String logoFile = findLogoTypeForGeneratedImage(file);
+                logger.debug("{file={},Logo={}}",file.getName(),logoFile);
+
+                if(null != logoFile){
+                    generatedVsLogoMapping.put(file.getName(), logoFile);
                 }
             }
         }
-        //System.out.println(generatedFileVsActualFile);
-        return generatedFileVsActualFile;
+        logger.debug("generatedVsLogoMapping: {}" , generatedVsLogoMapping);
+        return generatedVsLogoMapping;
     }
 
-    private String findActualFileNameForGeneratedImage(final File generatedImageFile) throws IOException {
-
-        ImageComparator comparator = new ImageComparator();
-
-        ClassLoader classLoader = main.class.getClassLoader();
-        File poemLogo =  new File(classLoader.getResource("poemLogo.jpeg").getFile());
-
-        File poemLogoThumbnail =  new File(classLoader.getResource("poemLogoThumbnail.jpeg").getFile());
-        File sweLogo =  new File(classLoader.getResource("sweLogo.jpeg").getFile());
-
-
-        File sweLogoThumbnail =  new File(classLoader.getResource("sweLogoThumbnail.jpeg").getFile());
-
-
-        if(comparator.visuallyCompare(generatedImageFile, poemLogo)){
-            return "poemLogo.jpeg";
-        }else if(comparator.visuallyCompare(generatedImageFile, poemLogoThumbnail)){
-            return "poemLogoThumbnail.jpeg";
-        }else if(comparator.visuallyCompare(generatedImageFile, sweLogo)){
-            return "sweLogo.jpeg";
-        }else if(comparator.visuallyCompare(generatedImageFile, sweLogoThumbnail)){
-            return "sweLogoThumbnail.jpeg";
+    /**
+     * Check if passed generated Image is just a copy of Logo file
+     * @param generatedImageFile
+     * @return
+     * @throws IOException
+     */
+    private String findLogoTypeForGeneratedImage(final File generatedImageFile) throws IOException {
+        logger.debug("Finding Logo type for img: {}",generatedImageFile.getName());
+        if(ImageComparator.visuallySameImage(generatedImageFile, poemLogo)){
+            return poemLogo.getName();
+        }else if(ImageComparator.visuallySameImage(generatedImageFile, poemLogoThumbnail)){
+            return poemLogoThumbnail.getName();
+        }else if(ImageComparator.visuallySameImage(generatedImageFile, sweLogo)){
+            return sweLogo.getName();
+        }else if(ImageComparator.visuallySameImage(generatedImageFile, sweLogoThumbnail)){
+            return sweLogoThumbnail.getName();
         }
-            return null;
+        logger.debug("Found image:{} which is not a logo.",generatedImageFile.getName());
+        return null;
+    }
+
+
+    /**
+     * Copy actual image files to Assets folder
+     * @throws IOException
+     */
+    private void copyLogoImagesToAssetsFolder() throws IOException {
+            initializeFileReferences();
+            logger.debug("Copying Logo Images from Resource folder to Assets Folder");
+
+            Files.copy(poemLogo.toPath(),
+                    new File(ApplicationProperties.imageFolder + "/poemLogo.jpeg").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy( poemLogoThumbnail.toPath(),
+                    new File(ApplicationProperties.imageFolder + "/poemLogoThumbnail.jpeg").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy( sweLogo.toPath(),
+                    new File(ApplicationProperties.imageFolder + "/sweLogo.jpeg").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+
+            Files.copy( sweLogoThumbnail.toPath(),
+                    new File(ApplicationProperties.imageFolder + "/sweLogoThumbnail.jpeg").toPath(),
+                    StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    /**
+     * Initialize references to logo images from resource folder
+     */
+    private void initializeFileReferences() {
+        logger.debug("Initializing File References for Logo Images from Resource folder");
+        poemLogo = new File(
+                Objects.requireNonNull(
+                                classLoader.getResource("poemLogo.jpeg"),
+                                "poemLogo.jpeg is not present in the resource folder.")
+                        .getFile());
+
+        poemLogoThumbnail = new File(
+                Objects.requireNonNull(
+                                classLoader.getResource("poemLogoThumbnail.jpeg"),
+                                "poemLogoThumbnail.jpeg is not present in the resource folder.")
+                        .getFile());
+
+        sweLogo = new File(
+                Objects.requireNonNull(
+                                classLoader.getResource("sweLogo.jpeg"),
+                                "sweLogo.jpeg is not present in the resource folder.")
+                        .getFile());
+
+        sweLogoThumbnail = new File(
+                Objects.requireNonNull(
+                                classLoader.getResource("sweLogoThumbnail.jpeg"),
+                                "sweLogoThumbnail.jpeg is not present in the resource folder.")
+                        .getFile());
+
+
     }
 }

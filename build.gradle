@@ -10,20 +10,12 @@ repositories {
 }
 
 dependencies {
-//    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api
-//    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.14.1'
-//// https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-//    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
-//
-//// https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-slf4j-impl
-//    testImplementation group: 'org.apache.logging.log4j', name: 'log4j-slf4j-impl', version: '2.14.1'
-//
-//// https://mvnrepository.com/artifact/org.slf4j/slf4j-api
-//    implementation 'org.slf4j:slf4j-api:1.7.25'
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation 'org.slf4j:slf4j-simple:1.7.30'
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:5.4.2.201908231537-r'
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-
 
 
 }
