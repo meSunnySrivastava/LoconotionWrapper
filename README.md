@@ -1,6 +1,6 @@
 # LoconotionWrapper
 
-### Java Wrapper to run Loconotion Script internally + Do Additional processing specific to my website. sunnysrivastava.com
+### Java Wrapper to run Loconotion Script internally + Do Additional processing specific to my website sunnysrivastava.com
 
 
 * Support two modes: 
