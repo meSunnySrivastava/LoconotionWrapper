@@ -1,3 +1,4 @@
+package image;
 
 import common.ApplicationProperties;
 import org.slf4j.Logger;
@@ -31,9 +32,9 @@ public class RedundantImageCleaner {
     public static File sweLogoThumbnail;
 
     public void cleanRedundantImagesFromAssetFolder() throws IOException {
-        logger.info("Going to clean redundant images in image-folder: {}", ApplicationProperties.imageFolder);
+        logger.info("Going to clean redundant images in image-folder: {}", ApplicationProperties.get("imageFolder"));
         replaceImageFileNameInHtml(getGeneratedImageVsLogoTypeMappings());
-        logger.info("Finished cleaning redundant images in image-folder: {}", ApplicationProperties.imageFolder);
+        logger.info("Finished cleaning redundant images in image-folder: {}", ApplicationProperties.get("imageFolder"));
 
     }
 
@@ -45,14 +46,14 @@ public class RedundantImageCleaner {
     private void replaceImageFileNameInHtml(final Map<String, String> generatedImageVsLogoTypeMappings) throws IOException {
         logger.debug("Replacing Random Image names to actual Logo Image names in HTML files.");
 
-        File htmlFolder = new File(ApplicationProperties.htmlFolder);
+        File htmlFolder = new File(ApplicationProperties.get("htmlFolder"));
 
         Matcher matcher;
         List<String> images = null;
         String content;
         String randomName;
         for(File file : Objects.requireNonNull(htmlFolder.listFiles(),
-                "Cannot Find specified htmlFolder: "+ApplicationProperties.htmlFolder )){
+                "Cannot Find specified htmlFolder: "+ApplicationProperties.get("htmlFolder") )){
 
             if (!file.isDirectory() && (file.getName()).endsWith("html")) {
                 logger.debug("Processing HTML File: {}", file.getName());
@@ -91,7 +92,7 @@ public class RedundantImageCleaner {
      * @throws IOException
      */
     private void DeleteRandomImageFile(String randomName) throws IOException {
-        Path randomImage = new File(ApplicationProperties.imageFolder+"/"+ randomName)
+        Path randomImage = new File(ApplicationProperties.get("imageFolder")+"/"+ randomName)
                 .toPath();
 
         if(randomImage.toFile().exists()){
@@ -110,10 +111,10 @@ public class RedundantImageCleaner {
         copyLogoImagesToAssetsFolder();
         logger.debug("Creating Generated Vs Logo type Mappings");
         Map<String, String> generatedVsLogoMapping = new HashMap<>();
-        File imagesFolder = new File(ApplicationProperties.imageFolder);
+        File imagesFolder = new File(ApplicationProperties.get("imageFolder"));
 
         for(File file : Objects.requireNonNull(imagesFolder.listFiles(),
-                "Cannot Find specified imagesFolder: "+ApplicationProperties.imageFolder )){
+                "Cannot Find specified imagesFolder: "+ApplicationProperties.get("imageFolder") )){
 
             if(!file.isDirectory()){
 
@@ -160,19 +161,19 @@ public class RedundantImageCleaner {
             logger.debug("Copying Logo Images from Resource folder to Assets Folder");
 
             Files.copy(poemLogo.toPath(),
-                    new File(ApplicationProperties.imageFolder + "/poemLogo.jpeg").toPath(),
+                    new File(ApplicationProperties.get("imageFolder") + "/poemLogo.jpeg").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
 
             Files.copy( poemLogoThumbnail.toPath(),
-                    new File(ApplicationProperties.imageFolder + "/poemLogoThumbnail.jpeg").toPath(),
+                    new File(ApplicationProperties.get("imageFolder") + "/poemLogoThumbnail.jpeg").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
 
             Files.copy( sweLogo.toPath(),
-                    new File(ApplicationProperties.imageFolder + "/sweLogo.jpeg").toPath(),
+                    new File(ApplicationProperties.get("imageFolder") + "/sweLogo.jpeg").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
 
             Files.copy( sweLogoThumbnail.toPath(),
-                    new File(ApplicationProperties.imageFolder + "/sweLogoThumbnail.jpeg").toPath(),
+                    new File(ApplicationProperties.get("imageFolder") + "/sweLogoThumbnail.jpeg").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
     }
 
