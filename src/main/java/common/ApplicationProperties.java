@@ -13,7 +13,7 @@ public class ApplicationProperties {
                 getClassLoader().getResourceAsStream("application.properties")){
         applicationProperties.load(inputStream);
         }catch(Exception e){
-            logger.error("Exception occurred while loading application properties during",e);
+            logger.error("Exception occurred while loading application properties",e);
         }
     }
 

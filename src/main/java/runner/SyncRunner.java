@@ -3,18 +3,17 @@ package runner;
 import common.ApplicationProperties;
 
 import java.io.File;
-import java.util.HashMap;
+import java.io.IOException;
 
 public class SyncRunner implements runner{
-    private final HashMap<String,String> args;
+    private final String pageUrl;
 
-
-    public SyncRunner(HashMap<String,String> args) {
-        this.args = args;
+    public SyncRunner(String pageUrl) {
+        this.pageUrl = pageUrl;
     }
 
-    public void run(){
-        runLoconotion(args.get("pageUrl"));
+    public void createWebsite() throws IOException, InterruptedException {
+        runLoconotion(pageUrl);
     }
 
     private void runLoconotionForSinglePage(String pageUrl){
@@ -22,9 +21,13 @@ public class SyncRunner implements runner{
         processBuilder.inheritIO().command("bash", "-c", getLoconotionCommand(pageUrl, true));
     }
 
-    private void runLoconotion(String pageUrl){
+    private void runLoconotion(String pageUrl) throws IOException, InterruptedException {
         ProcessBuilder processBuilder = getProcessBuilder();
         processBuilder.inheritIO().command("bash", "-c", getLoconotionCommand(pageUrl, false));
+        processBuilder.directory(new File(ApplicationProperties.get("locoFolder")));
+        processBuilder.start().waitFor();
+
+
     }
 
 
