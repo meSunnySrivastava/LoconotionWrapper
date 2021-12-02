@@ -1,9 +1,0 @@
-replace:66fe9770f0ef4c4ea50d13d076d80e6d.html:/
-replace:index.html:/
-delete:66fe9770f0ef4c4ea50d13d076d80e6d.html
-delete:e45a6449a8d9419b8ef1ec425f60cbd2.html
-rename:b259a0b9002c4d1aba8ac169eb4a5f09.html:categories.html
-replace:b259a0b9002c4d1aba8ac169eb4a5f09.html:categories
-replace:e45a6449a8d9419b8ef1ec425f60cbd2.html:software-engineering
-replace:target="_blank":
-replace:.html":"

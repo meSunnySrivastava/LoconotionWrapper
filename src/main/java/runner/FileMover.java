@@ -9,17 +9,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class FileMover {
     private final static Logger logger = LoggerFactory.getLogger(FileMover.class);
-    public final Path parentFolder;
     public final Path targetFolder;
+    public final Path sourceFolder;
     public String htmlTarget;
     public String cssTarget;
     public String fontsTarget;
@@ -27,64 +24,45 @@ public class FileMover {
     public String jsTarget;
 
 
-    public FileMover(String parentFolder) {
-        this.parentFolder = Paths.get(parentFolder);
-        File target = new File(String.format("%s%s%s", Paths.get(
-                        parentFolder).getParent().toString(),
-                File.separator,
-                "targetFolder"
-        ));
-        this.targetFolder = target.toPath();
-        if(target.mkdir())
-        logger.error("Created Target Folder: {}", target.toPath());
+    public FileMover(String sourceFolder ,String targetFolder) {
+        this.sourceFolder = Paths.get(sourceFolder);
+        this.targetFolder = Paths.get(targetFolder);
+        populateTargetFolders();
+        if(!this.targetFolder.toFile().exists() || !this.sourceFolder.toFile().exists())
+        logger.error("Source or target folder doesn't exist \nSource= {}\nTarget= {} ",sourceFolder, targetFolder);
 
     }
 
-    public void moveFilesToSingleFolder(){
+    public void moveFilesToTargetFolder(){
         try {
-            List<Path> allFilesPath = listAllFiles(this.parentFolder);
-//            System.out.println(allFilesPath.get(0).getFileName());
-//            allFilesPath.forEach(System.out::println);
-            Map<String,List<Path>> typeVsFilesPath = groupPathsByType(allFilesPath);
-            Boolean success = createAssetsFolderInTarget();
-            System.out.print(">>>>>>>>> success");
-            typeVsFilesPath.forEach(this::moveToTarget);
+            logger.error("Going to move files from \n {} \n to \n {}", this.sourceFolder, this.targetFolder);
+            List<Path> allFilesPath = listAllFiles(this.sourceFolder);
+            allFilesPath.forEach(this::moveFileToTarget);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    private void moveToTarget(String key, List<Path> value) {
-        switch (key) {
-            case "html":
-                value.forEach(path -> moveFileToTarget(path, this.htmlTarget) );
-                break;
-            case "css":
-                value.forEach(path -> moveFileToTarget(path, this.cssTarget) );
-                break;
-            case "images":
-                value.forEach(path -> moveFileToTarget(path, this.imagesTarget) );
-                break;
-            case "fonts":
-                value.forEach(path -> moveFileToTarget(path, this.fontsTarget) );
-                break;
-            case "js":
-                value.forEach(path -> moveFileToTarget(path, this.jsTarget) );
-                break;
+    private void moveFileToTarget(Path path) {
+        logger.error("Moving file: {}", path);
+        String target = null;
+        if (path.toString().endsWith("jpeg")
+                || path.toString().endsWith("png")) {
+            target = this.imagesTarget;
+        } else if (path.toString().endsWith("html")) {
+           target = this.htmlTarget;
+        } else if (path.toString().endsWith("css")) {
+            target = this.cssTarget;
+        } else if (path.toString().endsWith("js")) {
+            target = this.jsTarget;
+        } else {
+            target = this.fontsTarget;
         }
-    }
 
-    private void moveFileToTarget(Path path, String target) {
         String newFile = String.format("%s%s%s",
-                target,
+                Objects.requireNonNull(target),
                 File.separator,
                 path.getFileName().toString());
-        try {
-            Files.createFile(Paths.get(newFile));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        logger.error("new File: {}",newFile);
         if(path.toFile().exists()) {
             try {
                 logger.error("File Move result: {}",Files.move(
@@ -93,13 +71,13 @@ public class FileMover {
                         StandardCopyOption.REPLACE_EXISTING
                 ));
             } catch (IOException e) {
-                e.printStackTrace();
+                logger.error("Exception occurred while moveFileToTarget for file: {}", path,e);
             }
 
         }
     }
 
-    private Boolean createAssetsFolderInTarget() {
+    private void populateTargetFolders() {
         this.htmlTarget = this.targetFolder.toString();
         this.cssTarget = String.format("%s%s%s%s%s",
                 this.targetFolder.toString(),
@@ -128,44 +106,6 @@ public class FileMover {
                 File.separator,
                 "js");
 
-        return
-                new File(cssTarget).mkdirs() &&
-                new File(fontsTarget).mkdirs() &&
-                new File(imagesTarget).mkdirs() &&
-                new File(jsTarget).mkdirs();
-    }
-
-    private Map<String, List<Path>> groupPathsByType(List<Path> allFilesPath) {
-        Map<String, List<Path>> typeVsFilesPath = new HashMap<>();
-        List<Path> images = new ArrayList<>();
-        List<Path> html = new ArrayList<>();
-        List<Path> css = new ArrayList<>();
-        List<Path> fonts = new ArrayList<>();
-        List<Path> js = new ArrayList<>();
-
-        allFilesPath.forEach(path -> {
-            logger.debug("path : {}",path.getFileName().toString());
-            if(path.toString().endsWith("jpeg")
-                || path.toString().endsWith("png"))
-                images.add(path);
-            else if(path.toString().endsWith("html"))
-                html.add(path);
-            else if(path.toString().endsWith("css"))
-                css.add(path);
-            else if(path.toString().endsWith("js"))
-                js.add(path);
-            else
-                fonts.add(path);
-        });
-
-        typeVsFilesPath.put("images", images);
-        typeVsFilesPath.put("html", html);
-        typeVsFilesPath.put("css", css);
-        typeVsFilesPath.put("fonts", fonts);
-        typeVsFilesPath.put("js", js);
-
-        logger.debug("typeVsFilesPath : {}",typeVsFilesPath);
-        return typeVsFilesPath;
     }
 
     private List<Path> listAllFiles(Path parentFolderPath) throws IOException {

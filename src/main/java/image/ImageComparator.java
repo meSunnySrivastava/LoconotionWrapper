@@ -130,8 +130,13 @@ public class ImageComparator {
         if(file1 == file2) {
             return true;
         }
+        boolean answer = false;
+        try {
+            answer = visuallyCompareJava(file1, file2);
+        }catch(Exception e){
+            logger.error("Exception while comparing images {} and {}", file1, file2, e);
+        }
 
-        boolean answer = visuallyCompareJava(file1, file2);
 
         if(!answer) {
             logger.info("The files \"{}\" and \"{}\" are not pixel by pixel the same image. Manual comparison required.", file1.getPath(), file2.getPath());

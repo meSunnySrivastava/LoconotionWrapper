@@ -175,6 +175,16 @@ public class RedundantImageCleaner {
             Files.copy( sweLogoThumbnail.toPath(),
                     new File(ApplicationProperties.get("imageFolder") + "/sweLogoThumbnail.jpeg").toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
+
+        File fevicon = new File(
+                Objects.requireNonNull(
+                                classLoader.getResource("favicon.png"),
+                                "favicon.png is not present in the resource folder.")
+                        .getFile());
+
+        Files.copy( fevicon.toPath(),
+                new File(ApplicationProperties.get("imageFolder") + "/favicon.png").toPath(),
+                StandardCopyOption.REPLACE_EXISTING);
     }
 
     /**

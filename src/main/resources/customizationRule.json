@@ -1,0 +1,99 @@
+[
+  {
+    "type": "replace",
+    "args": {
+      "with": "/",
+      "what": "66fe9770f0ef4c4ea50d13d076d80e6d.html"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "/",
+      "what": "index.html"
+    },
+    "file": "*"
+  },
+  {
+    "type": "delete",
+    "file": "66fe9770f0ef4c4ea50d13d076d80e6d.html"
+  },
+  {
+    "type": "delete",
+    "file": "e45a6449a8d9419b8ef1ec425f60cbd2.html"
+  },
+  {
+    "type": "rename",
+    "args": {
+      "to": "categories.html"
+    },
+    "file": "b259a0b9002c4d1aba8ac169eb4a5f09.html"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "categories",
+      "what": "b259a0b9002c4d1aba8ac169eb4a5f09.html"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "software-engineering",
+      "what": "e45a6449a8d9419b8ef1ec425f60cbd2.html"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "",
+      "what": "target=\"_blank\""
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "",
+      "what": ".html"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "assets/images/favicon.png",
+      "what": "/images/favicon.ico"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "assets/images/favicon.png",
+      "what": "/images/logo-ios.png"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replace",
+    "args": {
+      "with": "<title>sunnysrivastava.com</title>",
+      "what": "<title>Welcome to my piece of internet</title>"
+    },
+    "file": "*"
+  },
+  {
+    "type": "replaceWithRegex",
+    "args": {
+      "with": "",
+      "regex": "(<div style=\"max-width: 100vw; z-index: 100; background: rgb\\(47, 52, 55\\); .+?)<div class=\"notion-scroller vertical horizontal\"",
+      "regexName": "IndexTopNavBarRegex",
+      "group": "1"
+    },
+    "file": "index.html"
+  }
+]

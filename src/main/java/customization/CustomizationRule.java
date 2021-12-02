@@ -6,6 +6,12 @@ public class CustomizationRule {
     public final String type;
     public final HashMap<String,String> args;
 
+    public final String file;
+    public String getFile() {
+        return file;
+    }
+
+
     public String getType() {
         return type;
     }
@@ -14,9 +20,10 @@ public class CustomizationRule {
         return args;
     }
 
-    public CustomizationRule(String type, HashMap<String, String> args) {
+    public CustomizationRule(String type, HashMap<String, String> args, String file) {
         this.type = type;
         this.args = args;
+        this.file = file;
     }
 
     @Override
@@ -24,6 +31,7 @@ public class CustomizationRule {
         return "CustomizationRule{" +
                 "type='" + type + '\'' +
                 ", args=" + args +
+                ", file='" + file + '\'' +
                 '}';
     }
 }
